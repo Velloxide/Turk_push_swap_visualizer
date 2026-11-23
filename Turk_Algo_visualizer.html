@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Turk · push_swap visualizer</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+:root{color-scheme:light;--bg:#f5f5f7;--cd:#fff;--tx:#1d1d1f;--t2:#6e6e73;--bd:rgba(0,0,0,.09);--ac:#0071e3;--ab:rgba(0,113,227,.11);--gr:#248a3d;--gb:rgba(52,199,89,.16);--wr:#b25e00;--wb:rgba(255,159,10,.16);--ow:#ff9f0a;--ib:#f2f2f4;--fl:#e8e8ed;--sd:0 1px 2px rgba(0,0,0,.04),0 6px 24px rgba(0,0,0,.05);--gl:rgba(245,245,247,.74);--bs:78%;--bl:87%;--bt:25%;--pt:#fff;--tr:#e5e5ea;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#000;--cd:#1c1c1e;--tx:#f5f5f7;--t2:#98989d;--bd:rgba(255,255,255,.12);--ac:#0a84ff;--ab:rgba(10,132,255,.22);--gr:#30d158;--gb:rgba(48,209,88,.2);--wr:#ffb340;--wb:rgba(255,159,10,.22);--ib:#2c2c2e;--fl:#3a3a3c;--sd:none;--gl:rgba(0,0,0,.72);--bs:50%;--bl:30%;--bt:90%;--tr:#39393d}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#000;--cd:#1c1c1e;--tx:#f5f5f7;--t2:#98989d;--bd:rgba(255,255,255,.12);--ac:#0a84ff;--ab:rgba(10,132,255,.22);--gr:#30d158;--gb:rgba(48,209,88,.2);--wr:#ffb340;--wb:rgba(255,159,10,.22);--ib:#2c2c2e;--fl:#3a3a3c;--sd:none;--gl:rgba(0,0,0,.72);--bs:50%;--bl:30%;--bt:90%;--tr:#39393d}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,system-ui,sans-serif;font-size:14px;line-height:1.6;letter-spacing:-.006em;-webkit-font-smoothing:antialiased}
+html[lang=ar] body{font-family:"SF Arabic",-apple-system,Cairo,system-ui,sans-serif;letter-spacing:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--gl);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);z-index:30}
+.tbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 24px;background:var(--gl);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-bottom:.5px solid var(--bd)}
+.ti{display:flex;align-items:baseline;gap:12px;min-width:0}.ti b{font-size:17px;font-weight:600;letter-spacing:-.02em}.subt{color:var(--t2);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.app{max-width:1360px;margin:0 auto;padding:18px 24px 28px}
+.card{background:var(--cd);border-radius:20px;padding:16px 18px;margin-bottom:16px;box-shadow:var(--sd)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.win{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:0 16px;align-items:start}
+.col{min-width:0}
+@media(max-width:1000px){.win{grid-template-columns:1fr}.tbar{padding:10px 14px}.app{padding:14px}.subt{display:none}}
+label{font-size:13px;color:var(--t2)}
+button{font:inherit;font-size:13.5px;padding:7px 16px;border:0;border-radius:980px;background:var(--fl);color:var(--tx);cursor:pointer;transition:filter .15s,background .2s,transform .1s}
+button:hover{filter:brightness(.96)}button:active{transform:scale(.97)}button.p{background:var(--ac);color:var(--pt)}
+.seg{display:inline-flex;background:var(--ib);border-radius:11px;padding:2px;gap:2px;flex-wrap:wrap}
+.seg button,.ph button{background:transparent;border-radius:9px;padding:5px 13px;font-size:13px;color:var(--tx)}
+.seg button:hover,.ph button:hover{background:var(--fl);filter:none}
+.ph{display:inline-flex;background:var(--ib);border-radius:11px;padding:2px;gap:2px;flex-wrap:wrap}
+.ph button.on{background:var(--cd);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.14)}
+#inp{flex:1;min-width:220px;padding:9px 14px;border:0;border-radius:12px;background:var(--ib);color:var(--tx);font:600 16px 'SF Mono','JetBrains Mono',ui-monospace,monospace;letter-spacing:.1em;word-spacing:.55em;direction:ltr}
+#inp:focus{outline:3px solid var(--ab)}
+.nums{display:flex;gap:5px;flex-wrap:wrap;direction:ltr}
+.nums span{font:600 12.5px 'SF Mono','JetBrains Mono',monospace;min-width:30px;text-align:center;padding:2px 8px;border-radius:99px;background:var(--ib)}
+.sp{flex:1}
+.sw{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--tx);cursor:pointer}
+.sw input{-webkit-appearance:none;appearance:none;width:38px;height:23px;border-radius:99px;background:var(--tr);position:relative;transition:background .25s;cursor:pointer;margin:0;flex:none}
+.sw input::after{content:'';position:absolute;top:2px;left:2px;width:19px;height:19px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .25s}
+.sw input:checked{background:#34c759}.sw input:checked::after{transform:translateX(15px)}
+input[type=range]{-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;background:var(--fl);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#fff;border:0;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+.er{color:#ff3b30;font-size:13px;margin-top:6px}.er:empty{display:none}
+.em{font-size:12px;color:var(--t2)}
+.badge{font-size:12px;padding:2px 12px;border-radius:99px;background:var(--ab);color:var(--ac);font-weight:600}
+.op{font:600 20px 'SF Mono','JetBrains Mono',monospace;color:var(--gr);background:var(--gb);padding:0 14px;border-radius:10px;min-width:60px;text-align:center;direction:ltr}
+.xp{min-height:190px}
+h2{font-size:19px;font-weight:600;letter-spacing:-.02em;margin:10px 0 4px}.msg{font-size:14.5px;margin:0;color:var(--tx)}
+code{font-family:'SF Mono','JetBrains Mono',monospace;font-size:12.5px;background:var(--ib);padding:2px 9px;border-radius:7px;direction:ltr;display:inline-block}
+.hdr{display:grid;grid-template-columns:1fr 1fr;direction:ltr;text-align:center;font-size:12px;font-weight:600;color:var(--t2);margin:14px auto 6px;gap:12px;max-width:640px;text-transform:none}
+#stg{position:relative;direction:ltr;--td:500ms;max-width:640px;margin-inline:auto}
+.cl{position:absolute;top:0;bottom:0;width:49%;border-radius:16px;background:var(--ib)}
+.b{position:absolute;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;font:600 14px 'SF Mono','JetBrains Mono',monospace;background:hsl(var(--h) var(--bs) var(--bl));color:hsl(var(--h) 65% var(--bt));transition:left var(--td) ease,top var(--td) ease,width var(--td) ease,box-shadow .2s}
+.b.hb{box-shadow:0 0 0 3px var(--ac);z-index:3}.b.hw{box-shadow:0 0 0 3px var(--ow);z-index:2}
+.b[data-tag]::after{content:attr(data-tag);position:absolute;top:-9px;left:8px;font:600 10px -apple-system,Inter,system-ui,sans-serif;line-height:15px;padding:0 8px;border-radius:99px;background:var(--ac);color:var(--pt)}
+.b.hw::after{background:var(--ow);color:#1a1200}
+.lg2{display:flex;gap:14px;font-size:12px;color:var(--t2);margin-top:12px;flex-wrap:wrap;align-items:center;justify-content:center}
+.lg2 i{display:inline-block;width:14px;height:14px;border-radius:5px;vertical-align:-2px;margin-inline-end:5px}
+.tr{margin-top:14px;direction:ltr;flex-wrap:nowrap}.tr button{width:38px;height:34px;padding:0;font-size:12px}.tr button.p{width:56px}
+.stat{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--t2);align-items:center}.stat b{color:var(--tx);font-size:17px;font-weight:600}
+.log{display:flex;flex-wrap:wrap;gap:4px;direction:ltr;margin-top:10px;max-height:78px;overflow-y:auto}
+.chip{font:600 12px 'SF Mono','JetBrains Mono',monospace;padding:2px 9px;border-radius:99px;background:var(--ib);color:var(--tx)}
+.chip.dn{background:var(--fl)}.chip.on{background:var(--ac);color:var(--pt)}
+table{width:100%;border-collapse:collapse;font-size:13px;text-align:center;direction:ltr;font-variant-numeric:tabular-nums}
+th{color:var(--t2);font-weight:500;padding:6px;font-size:12px}td{padding:10px 6px;border-top:.5px solid var(--bd)}
+tbody tr:hover td{background:var(--ib)}
+.k{font-family:'SF Mono','JetBrains Mono',monospace;background:var(--ib);padding:0 6px;border-radius:6px;font-weight:600;direction:ltr;display:inline-block}
+.lab-h{font-size:15px;font-weight:600;letter-spacing:-.01em}
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:none}}
+.fi{animation:up .4s ease both}.mn{animation:up .35s ease both}.chp{animation:pop .3s ease both}
+.sh{display:grid;grid-template-rows:1fr;opacity:1;transition:grid-template-rows .45s ease,opacity .35s ease}
+.sh.hide{grid-template-rows:0fr;opacity:0;pointer-events:none}.sh>.in{overflow:hidden;min-height:0;margin:-12px;padding:12px}
+.rin tr{animation:up .35s ease both}
+td{transition:background .25s,color .25s}
+tbody tr.fr{cursor:pointer}tbody tr:not(.fr){cursor:default}
+tr.sl td{background:var(--ab);color:var(--ac);font-weight:600}
+.labg{display:grid;grid-template-columns:1fr;gap:14px;margin-top:10px;align-items:start}
+.minis{display:flex;gap:18px;direction:ltr;justify-content:center}.mn{width:124px}
+.mh{font-size:12px;font-weight:600;color:var(--t2);margin-bottom:6px;text-align:center}.mh span{font-weight:400}
+.mc{display:flex;gap:6px;align-items:center;height:30px;margin-bottom:6px}
+.mc i{width:16px;font:11px 'SF Mono','JetBrains Mono',monospace;color:var(--t2);text-align:end;font-style:normal}
+.mc span{flex:1;border-radius:8px;background:var(--ib);text-align:center;font:600 13px/30px 'SF Mono','JetBrains Mono',monospace;border:1.5px solid transparent}
+.mc.b1 span{background:var(--ab);color:var(--ac);border-color:var(--ac)}
+.mc.b2 span{background:var(--wb);color:var(--wr);border-color:var(--ow)}
+.mc.b3 span{border:1.5px dashed var(--ow)}
+.mc.rt span{background:var(--gb);color:var(--gr)}
+.lbb p{margin:0 0 8px;font-size:14px}.lbb{min-height:110px}
+.pls{display:flex;gap:8px;margin:6px 0 10px;direction:ltr;flex-wrap:wrap}
+.pl{font:600 12.5px 'SF Mono','JetBrains Mono',monospace;padding:3px 12px;border-radius:99px;background:var(--ib);color:var(--t2);opacity:.6}
+.pl.ok{background:var(--gb);color:var(--gr);opacity:1}
+.chs{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0;direction:ltr;min-height:30px}
+.chp{font:600 13px 'SF Mono','JetBrains Mono',monospace;padding:3px 10px;border-radius:9px;background:var(--ib)}
+.chp.mg{background:var(--gb);color:var(--gr)}.chp.pb2{background:var(--ab);color:var(--ac)}
+.dots{display:flex;gap:8px;justify-content:center;margin-top:12px;direction:ltr}
+.dt{width:8px;height:8px;border-radius:50%;background:var(--fl);border:0;padding:0;cursor:pointer;transition:transform .2s,background .2s}
+.dt.on{background:var(--ac);transform:scale(1.4)}
+@media(max-width:600px){.labg{grid-template-columns:1fr}.minis{justify-content:center}}
+button:focus-visible,input[type=range]:focus-visible,.sw input:focus-visible{outline:3px solid var(--ab);outline-offset:2px}
+.sw input:active::after{width:23px}.sw input:checked:active::after{transform:translateX(11px)}
+tr.sl td:first-child{border-radius:10px 0 0 10px}tr.sl td:last-child{border-radius:0 10px 10px 0}
+#sc{background:linear-gradient(to right,var(--ac) var(--p,0%),var(--fl) var(--p,0%))}
+@media(max-width:560px){.tr{flex-wrap:wrap;justify-content:center}.tr #sc{order:9;flex:1 1 100%}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="tbar"><div class="ti"><b data-e="Turk visualizer" data-a="مصوّر Turk"></b><span class="subt" data-e="push_swap · every move explained · use the ← → keys" data-a="push_swap · كل حركة مشروحة · استعمل الأسهم ← →"></span></div>
+<div class="row" style="flex-wrap:nowrap"><button id="lang"></button><button id="th" data-e="Theme" data-a="المظهر"></button></div></header>
+<main class="app">
+<section class="card">
+<div class="row"><input type="text" id="inp" value="5 2 9 1 7 3 8" aria-label="numbers"><button class="p" id="go" data-e="Start" data-a="ابدأ"></button><div class="seg"><button id="rnd" data-e="Random" data-a="عشوائي"></button><button id="srt" data-e="Sorted" data-a="مرتب"></button><button id="rev" data-e="Reversed" data-a="معكوس"></button></div></div>
+<div class="row" style="margin-top:10px"><div class="nums" id="nums"></div><span class="sp"></span><label for="n" data-e="Count" data-a="العدد"></label><input type="range" id="n" min="5" max="14" value="8" style="width:90px"><span id="nv" class="em">8</span>
+<label class="sw"><input type="checkbox" id="mg" checked><span data-e="Merge rr / rrr" data-a="دمج rr / rrr"></span></label>
+<label class="sw"><input type="checkbox" id="tbc" checked><span data-e="Cost details" data-a="تفاصيل التكلفة"></span></label></div>
+<div class="er" id="er"></div>
+</section>
+<div class="win">
+<div class="col">
+<section class="card">
+<div class="ph" id="phs"></div>
+<div class="hdr"><div>Stack A <span data-e="(top ↑)" data-a="(القمة ↑)"></span></div><div>Stack B <span data-e="(top ↑)" data-a="(القمة ↑)"></span></div></div>
+<div id="stg"><div class="cl" style="left:0"></div><div class="cl" style="right:0"></div></div>
+<div class="lg2"><span><i style="box-shadow:0 0 0 2px var(--ac)"></i><span data-e="Current number" data-a="الرقم الجاري"></span></span><span><i style="box-shadow:0 0 0 2px var(--ow)"></i><span data-e="Target" data-a="الهدف (target)"></span></span><span data-e="Colour = rank: warm = large, cool = small" data-a="اللون = الترتيب: الدافئ كبير والبارد صغير"></span></div>
+<div class="row tr"><button id="f" aria-label="First step · الخطوة الأولى">⏮</button><button id="pv" aria-label="Previous · السابق">◀</button><button class="p" id="pl" aria-label="Play / pause · تشغيل / إيقاف">▶</button><button id="nx" aria-label="Next · التالي">▶▶</button><button id="l" aria-label="Last step · الخطوة الأخيرة">⏭</button>
+<input type="range" id="sc" aria-label="Steps · الخطوات" min="0" max="0" value="0" style="flex:1;min-width:100px"><label for="sp" data-e="Speed" data-a="السرعة"></label><input type="range" id="sp" min="150" max="1600" step="50" value="950" style="width:84px"></div>
+</section>
+<section class="card xp">
+<div class="row"><span class="badge" id="pb"></span><span class="op" id="op">·</span><span id="cn" class="em" style="margin-inline-start:auto"></span></div>
+<h2 id="tt"></h2><p class="msg" id="ms"></p>
+<p style="margin:10px 0 0" id="fw"><span class="em" data-e="In the code:" data-a="في الكود:"></span> <code id="fn"></code></p>
+</section>
+<section class="card">
+<div class="stat"><span><span data-e="Moves so far" data-a="الحركات حتى الآن"></span> <b id="s1">0</b></span><span><span data-e="Total" data-a="المجموع"></span> <b id="s2">0</b></span><span><span data-e="Without merge" data-a="بدون دمج"></span> <b id="s3">0</b></span><span><span data-e="With merge" data-a="مع الدمج"></span> <b id="s4">0</b></span><button id="cp" style="margin-inline-start:auto" data-e="Copy moves" data-a="نسخ الحركات"></button></div>
+<div class="log" id="lg"></div>
+</section>
+</div>
+<div class="col">
+<div class="sh" id="tbw"><div class="in"><div class="card" id="tbx"><div id="tb"></div><div class="em" id="tbh" style="margin-top:8px"></div></div></div></div>
+<div class="sh" id="labw"><div class="in"><div class="card" id="lab">
+<div class="row"><b class="lab-h" data-e="How the cost is computed" data-a="كيف تُحسب التكلفة"></b><span class="badge" id="labv"></span><span id="labn" class="em" style="margin-inline-start:auto"></span></div>
+<h3 id="labt" style="font-size:15px;font-weight:600;margin:12px 0 0"></h3>
+<div class="labg"><div class="minis" id="minis"></div><div class="lbb" id="lbb"></div></div>
+<div class="dots" id="dots"></div>
+<div class="row" style="justify-content:center;margin-top:10px;direction:ltr"><button id="lbp" data-e="◀ Previous" data-a="◀ السابق"></button><button class="p" id="lbx" data-e="Next ▶" data-a="التالي ▶"></button></div>
+</div></div></div>
+</div>
+</div>
+</main>
+<script>
+var lang='en',S=[],cur=0,tm=null,rk={},N=0,vals=[],bars={},insp=null,ARR=[],hov=null,csub=0,labKey='',lastRow='',tbKey='',lastCur=-1,curT=null;
+try{lang=localStorage.getItem('tk_l')||((navigator.language||'').slice(0,2)=='ar'?'ar':'en');var t0=localStorage.getItem('tk_t');if(t0)document.documentElement.setAttribute('data-theme',t0)}catch(e){}
+function L(e,a){return lang=='ar'?a:e}
+var PH=function(){return[L('Start','البداية'),L('1 · A → B','1 · من A إلى B'),L('Sort three','فرز الثلاثة'),L('2 · B → A','2 · من B إلى A'),L('Finish','النهاية')]};
+function $(i){return document.getElementById(i)}
+function delay(){return 1750-(+$('sp').value)}
+function ui(){document.documentElement.lang=lang;document.documentElement.dir=lang=='ar'?'rtl':'ltr';
+document.querySelectorAll('[data-e]').forEach(function(x){x.textContent=lang=='ar'?x.getAttribute('data-a'):x.getAttribute('data-e')});
+$('lang').textContent=lang=='ar'?'English':'العربية'}
+function sc(i,l){return i<=l-i?i:-(l-i)}
+function dr(c,x){return c>=0?'r'+x:'rr'+x}
+function build(arr,mg){
+var a=arr.slice(),b=[],R=[],ph=0,tb=null,hb=null,hw=null;
+function tot(x,y){return mg&&((x>=0&&y>=0)||(x<=0&&y<=0))?Math.max(Math.abs(x),Math.abs(y)):Math.abs(x)+Math.abs(y)}
+function sn(o,t,m,f){R.push({a:a.slice(),b:b.slice(),o:o,t:t,m:m,f:f||'',ph:ph,tb:tb,hb:hb,hw:hw})}
+function d(n,t,m,f){
+if(n=='pb')b.unshift(a.shift());else if(n=='pa')a.unshift(b.shift());
+else if(n=='ra')a.push(a.shift());else if(n=='rb')b.push(b.shift());
+else if(n=='rr'){a.push(a.shift());b.push(b.shift())}
+else if(n=='rra')a.unshift(a.pop());else if(n=='rrb')b.unshift(b.pop());
+else if(n=='rrr'){a.unshift(a.pop());b.unshift(b.pop())}
+else if(n=='sa'){var x=a[0];a[0]=a[1];a[1]=x}
+sn(n,t,m,f)}
+function sm(x){return b.filter(function(v){return v<x})}
+function tB(x){var s=sm(x);return s.length?Math.max.apply(null,s):Math.max.apply(null,b)}
+function tA(x){var g=a.filter(function(v){return v>x});return g.length?Math.min.apply(null,g):Math.min.apply(null,a)}
+sn('',L('Initial state','الحالة الأولية'),L('All numbers are in A and B is empty. Goal: A sorted ascending (smallest on top) and B empty. Phase 1 moves numbers to B so that B stays in descending order; phase 2 brings them back to A in their place.','كل الأرقام في A وB فارغ. الهدف: A مرتب تصاعديا (الأصغر في القمة) وB فارغ. المرحلة 1 تنقل الأرقام إلى B بحيث يبقى B مرتبا تنازليا، والمرحلة 2 تعيدها إلى A في مواضعها.'),'main()');
+ph=1;
+d('pb',L('Push the first number','دفع أول رقم'),L('We push two numbers without any calculation, because finding a target needs numbers to already exist in B.','نبدأ بدفع رقمين بدون حساب، لأن البحث عن target يحتاج وجود أرقام في B أصلا.'),'push_b()');
+d('pb',L('Push the second number','دفع الرقم الثاني'),L('B now holds two numbers. Its order is descending in a circular sense. From now on, each pushed number lands exactly in its right place between its neighbours.','في B رقمان الآن. ترتيب B تنازلي بشكل دائري. من الآن كل رقم يُدفع يقع في مكانه الصحيح بين جيرانه.'),'push_b()');
+var k=0;
+while(a.length>3){
+k++;var nA=a.length,nB=b.length;
+var rows=a.map(function(v,i){var t=tB(v),j=b.indexOf(t),ca=sc(i,nA),cb=sc(j,nB);return{v:v,i:i,t:t,j:j,ca:ca,cb:cb,c:tot(ca,cb)+1,sm:sm(v)}});
+var ch=rows[0];rows.forEach(function(r){if(r.c<ch.c)ch=r});
+tb={r:rows,md:0,ch:null,nA:nA,nB:nB,mg:mg,free:1,id:k+'a',A:a.slice(),B:b.slice()};
+sn('',L('Round '+k+': find each number’s target','الجولة '+k+': تحديد الهدف لكل رقم'),L('For every number in A we look in B for the largest number that is smaller than it. That is its target: it must be on top of B before the push so B stays descending. If B has no smaller number, the target is the largest number in B.','لكل رقم في A نبحث في B عن أكبر رقم أصغر منه، وهذا هو الهدف (target): يجب أن يكون في قمة B قبل الدفع ليبقى B تنازليا. إذا لم يوجد رقم أصغر فالهدف هو أكبر رقم في B.'),'set_target_a()');
+tb={r:rows,md:1,ch:null,nA:nA,nB:nB,mg:mg,free:1,id:k+'b',A:a.slice(),B:b.slice()};
+sn('',L('Round '+k+': compute the costs','الجولة '+k+': حساب التكلفة'),L('costA = moves to bring the number to the top of A, costB = moves to bring its target to the top of B. We take the shorter direction: up (ra/rb) if it is in the top half, otherwise down (rra/rrb). ','costA عدد الحركات لجلب الرقم إلى قمة A، وcostB لجلب هدفه إلى قمة B. نختار الاتجاه الأقصر: للأعلى (ra/rb) إن كان في النصف العلوي وإلا للأسفل (rra/rrb). ')+(mg?L('If A and B go the same direction we merge them into rr/rrr, so the cost is the larger of the two; otherwise it is the sum. ','إذا اتفق اتجاه A وB ندمجهما في rr/rrr فتصبح التكلفة الأكبر منهما، وإلا فالمجموع. '):L('Merging is off, so the cost is always the sum. ','الدمج معطّل، فالتكلفة هي المجموع دائما. '))+L('Then +1 for the push. Click a row below to see the details.','ثم +1 لحركة الدفع. اضغط على أي صف في الجدول لترى التفاصيل.'),'set_cost()');
+tb={r:rows,md:1,ch:ch.v,nA:nA,nB:nB,mg:mg,free:0,id:k+'c',A:a.slice(),B:b.slice()};
+sn('',L('Pick the cheapest','اختيار الأرخص'),L('The lowest cost belongs to '+ch.v+' ('+ch.c+' moves) and its target is '+ch.t+'. We bring both to the tops, then push.','أقل تكلفة هي للرقم '+ch.v+' ('+ch.c+' حركة) وهدفه '+ch.t+'. سنجلبهما إلى القمتين ثم ندفع.'),'find_cheapest()');
+var ca=ch.ca,cb=ch.cb;hb=ch.v;hw=ch.t;
+if(mg){while(ca>0&&cb>0){d('rr',L('Shared rotation','دوران مشترك'),L('Rotate A and B up together in one move instead of separate ra and rb.','ندور A وB معا نحو الأعلى بحركة واحدة بدل ra وrb منفصلتين.'),'do_rr()');ca--;cb--}
+while(ca<0&&cb<0){d('rrr',L('Shared reverse rotation','دوران مشترك عكسي'),L('Rotate A and B down together in one move.','ندور A وB معا نحو الأسفل بحركة واحدة.'),'do_rrr()');ca++;cb++}}
+while(ca>0){d('ra',L('Bring '+ch.v+' to the top of A','جلب '+ch.v+' إلى قمة A'),L('Rotate A up: the chosen number is closer to the top from above.','نحرك A نحو الأعلى: الرقم المختار أقرب إلى القمة من الأعلى.'),'rotate_a()');ca--}
+while(ca<0){d('rra',L('Bring '+ch.v+' to the top of A','جلب '+ch.v+' إلى قمة A'),L('Rotate A down: the number is closer to the top from below.','نحرك A نحو الأسفل: الرقم أقرب إلى القمة من الأسفل.'),'reverse_rotate_a()');ca++}
+while(cb>0){d('rb',L('Bring target '+ch.t+' to the top of B','جلب الهدف '+ch.t+' إلى قمة B'),L('Rotate B up until the target is on top.','نحرك B نحو الأعلى حتى يصبح الهدف في القمة.'),'rotate_b()');cb--}
+while(cb<0){d('rrb',L('Bring target '+ch.t+' to the top of B','جلب الهدف '+ch.t+' إلى قمة B'),L('Rotate B down until the target is on top.','نحرك B نحو الأسفل حتى يصبح الهدف في القمة.'),'reverse_rotate_b()');cb++}
+tb=null;d('pb',L('Push '+ch.v+' to B','دفع '+ch.v+' إلى B'),L('The number is on top of A and its target is on top of B, so the push puts it right above its target and B stays ordered.','الرقم في قمة A وهدفه في قمة B، فالدفع يضعه فوق الهدف مباشرة ويبقى B مرتبا.'),'push_b()');
+tb=null;hb=null;hw=null}
+ph=2;
+sn('',L('Three numbers left in A','بقي 3 أرقام في A'),L('We stop pushing and sort the last three with fixed cases: biggest on top → ra, biggest in the middle → rra, then sa if the top two are swapped.','نتوقف عن الدفع ونرتب الثلاثة بحالات ثابتة: الأكبر في القمة ← ra، الأكبر في الوسط ← rra، ثم sa إذا بقي أول رقمين معكوسين.'),'sort_three()');
+var g=0;while(g++<4&&!(a[0]<a[1]&&a[1]<a[2])){var m=Math.max.apply(null,a);
+if(a[0]==m)d('ra',L('Biggest is on top','الأكبر في القمة'),L('Rotate it to the bottom.','ندوره إلى الأسفل.'),'rotate_a()');
+else if(a[1]==m)d('rra',L('Biggest is in the middle','الأكبر في الوسط'),L('Reverse rotate to bring it to the bottom.','نرجعه إلى الأسفل بالدوران العكسي.'),'reverse_rotate_a()');
+else d('sa',L('Swap the top two','تبديل أول رقمين'),L('The biggest is already at the bottom but the top two are reversed.','الأكبر في الأسفل لكن الرقمين العلويين معكوسان.'),'swap_a()')}
+ph=3;
+while(b.length){var x=b[0],t=tA(x),i=a.indexOf(t),c=sc(i,a.length),nn=a.length;
+hb=x;hw=t;
+var none=t<x;
+sn('',L('Return '+x+' to A','إعادة '+x+' إلى A'),L('Top of B is '+x+'. In A we look for the smallest number larger than '+x+(none?': none exists, so the target is the smallest number in A, ':': ')+t+'. It sits at index '+i+' of '+nn+' → up '+i+' (ra) or down '+(nn-i)+' (rra) → '+(c>=0?'ra ':'rra ')+Math.abs(c)+'. It must be on top of A before the push.','قمة B هي '+x+'. في A نبحث عن أصغر رقم أكبر من '+x+(none?': لا يوجد، فالهدف أصغر رقم في A وهو ':' وهو ')+t+'. موضعه '+i+' من '+nn+' ← للأعلى '+i+' (ra) أو للأسفل '+(nn-i)+' (rra) ← '+(c>=0?'ra ':'rra ')+Math.abs(c)+'. يجب أن يكون في قمة A قبل الإرجاع.'),'set_target_b()');
+while(c>0){d('ra',L('Bring '+t+' to the top of A','جلب '+t+' إلى قمة A'),L('Rotate A up until the target is on top.','ندور A نحو الأعلى حتى يصبح الهدف في القمة.'),'rotate_a()');c--}
+while(c<0){d('rra',L('Bring '+t+' to the top of A','جلب '+t+' إلى قمة A'),L('Rotate A down until the target is on top.','ندور A نحو الأسفل حتى يصبح الهدف في القمة.'),'reverse_rotate_a()');c++}
+d('pa',L('Return '+x+' to A','إرجاع '+x+' إلى A'),L('The target is on top, so '+x+' lands right above it, which is its correct place.','الهدف في القمة، فالرقم '+x+' يُوضع فوقه وهو مكانه الصحيح.'),'push_a()')}
+hb=null;hw=null;ph=4;
+var mn=Math.min.apply(null,a),q=sc(a.indexOf(mn),a.length);
+if(q==0)sn('',L('Smallest is already on top','الأصغر في القمة'),L('No extra rotation is needed.','لا نحتاج أي دوران إضافي.'),'finish_rotate()');
+while(q>0){d('ra',L('Final rotation','تدوير نهائي'),L('A is sorted circularly: rotate until the smallest, '+mn+', is on top.','A مرتب دائريا، ندوره حتى يصبح الأصغر '+mn+' في القمة.'),'finish_rotate()');q--}
+while(q<0){d('rra',L('Final rotation','تدوير نهائي'),L('A is sorted circularly: reverse rotate until the smallest, '+mn+', is on top.','A مرتب دائريا، ندوره عكسيا حتى يصبح الأصغر '+mn+' في القمة.'),'finish_rotate()');q++}
+sn('',L('Sorting finished','انتهى الفرز'),L('A is sorted ascending and B is empty.','A مرتب تصاعديا وB فارغ.'),'');
+return R}
+function nops(R){return R.filter(function(s){return s.o}).length}
+function K(x){return '<b class="k">'+x+'</b>'}
+function pills(idx,n,x){var cu=idx<=n-idx;return '<div class="pls"><span class="pl'+(cu?' ok':'')+'">↑ r'+x+' × '+idx+'</span><span class="pl'+(cu?'':' ok')+'">↓ rr'+x+' × '+(n-idx)+'</span></div>'}
+function seqOps(r,T){var ca=r.ca,cb=r.cb,ak=Math.abs(ca),bk=Math.abs(cb),q=[],i,same=(ca>=0&&cb>=0)||(ca<=0&&cb<=0);
+if(T.mg&&same){var m=Math.min(ak,bk);for(i=0;i<m;i++)q.push(ca>=0?'rr':'rrr');for(i=0;i<ak-m;i++)q.push(ca>=0?'ra':'rra');for(i=0;i<bk-m;i++)q.push(cb>=0?'rb':'rrb')}
+else{for(i=0;i<ak;i++)q.push(ca>=0?'ra':'rra');for(i=0;i<bk;i++)q.push(cb>=0?'rb':'rrb')}
+return q}
+function opChips(q,pb){return '<div class="chs">'+q.map(function(o,i){return '<span class="chp'+(o=='rr'||o=='rrr'?' mg':'')+'" style="animation-delay:'+i*70+'ms">'+o+'</span>'}).join('')+(pb?'<span class="chp pb2" style="animation-delay:'+q.length*70+'ms">pb</span>':'')+'</div>'}
+function labData(r,T){var v=r.v,t=r.t,i=r.i,j=r.j,nA=T.nA,nB=T.nB,ca=Math.abs(r.ca),cb=Math.abs(r.cb),same=(r.ca>=0&&r.cb>=0)||(r.ca<=0&&r.cb<=0),q=seqOps(r,T),m=Math.min(ca,cb),mn=Math.min.apply(null,T.r.map(function(x){return x.c}));
+var rA=r.ca>=0?[0,i-1]:[i+1,nA-1],rB=r.cb>=0?[0,j-1]:[j+1,nB-1];
+var H=[L('1 · Where is the number in A?','1 · أين الرقم في A؟'),L('2 · Moves to bring it to the top (costA)','2 · كم حركة لجلبه إلى القمة (costA)'),L('3 · Its target in B','3 · هدفه في B'),L('4 · Moves to bring the target to the top of B (costB)','4 · كم حركة لجلب الهدف إلى قمة B (costB)'),L('5 · Put the A and B moves together','5 · نجمع حركات A وB'),L('6 · Add the push (pb)','6 · نضيف حركة الدفع (pb)')];
+var b0=L('<p>'+K(v)+' is the number we are checking. In stack A it sits at index '+K(i)+' (index 0 is the top).</p><p>A has '+nA+' numbers, so '+i+' number'+(i==1?'':'s')+' sit above it.</p>','<p>'+K(v)+' هو الرقم الذي نفحصه. موقعه في A هو الفهرس '+K(i)+' (الفهرس 0 هو القمة).</p><p>في A عدد '+nA+' أرقام، وفوقه '+i+' منها.</p>');
+var b1=i==0?L('<p>'+K(v)+' is already on top of A, so costA = '+K(0)+'.</p>','<p>'+K(v)+' في قمة A أصلا، إذن '+K('costA = 0')+'.</p>'):L('<p>To push '+K(v)+' it must first be on top of A. There are two ways:</p>'+pills(i,nA,'a')+'<p>'+K('ra')+' sends the top number to the bottom, so the list scrolls up. '+K('rra')+' does the opposite. A is like a circle, so both end with '+v+' on top, and we take the shorter way: '+K(dr(r.ca,'a')+' × '+ca)+'. So costA = '+K(ca)+'.</p>','<p>لكي ندفع '+K(v)+' يجب أن يكون في قمة A أولا. هناك طريقتان:</p>'+pills(i,nA,'a')+'<p>'+K('ra')+' ترسل الرقم العلوي إلى الأسفل فتصعد القائمة. و'+K('rra')+' تفعل العكس. المكدس كالدائرة، فالطريقتان توصلان '+v+' إلى القمة، ونختار الأقصر: '+K(dr(r.ca,'a')+' × '+ca)+'. إذن '+K('costA = '+ca)+'.</p>');
+var b2=L('<p>'+(r.sm.length?'Numbers in B smaller than '+K(v)+': '+K(r.sm.join(', '))+'. We pick the largest of them: '+K(t)+'.':'No number in B is smaller than '+K(v)+', so we pick the largest number in B: '+K(t)+'.')+'</p><p>'+(r.sm.length?'After the push, '+v+' lands right above '+t+', so B stays in descending order from the top.':'B works like a circle, so the new smallest number goes next to the largest one.')+'</p>','<p>'+(r.sm.length?'الأرقام في B الأصغر من '+K(v)+': '+K(r.sm.join('، '))+'. نختار أكبرها: '+K(t)+'.':'لا يوجد في B رقم أصغر من '+K(v)+'، فنختار أكبر رقم في B: '+K(t)+'.')+'</p><p>'+(r.sm.length?'بعد الدفع يقع '+v+' فوق '+t+' مباشرة، فيبقى B مرتبا تنازليا من القمة.':'B يعمل كدائرة، فأصغر رقم جديد يوضع بجانب أكبر رقم.')+'</p>');
+var b3=j==0?L('<p>The target '+K(t)+' is already on top of B, so costB = '+K(0)+'.</p>','<p>الهدف '+K(t)+' في قمة B أصلا، إذن '+K('costB = 0')+'.</p>'):L('<p>Same idea in B. The target '+K(t)+' is at index '+K(j)+' of '+nB+':</p>'+pills(j,nB,'b')+'<p>The shorter way is '+K(dr(r.cb,'b')+' × '+cb)+'. So costB = '+K(cb)+'.</p>','<p>الفكرة نفسها في B. الهدف '+K(t)+' في الفهرس '+K(j)+' من '+nB+':</p>'+pills(j,nB,'b')+'<p>الأقصر هو '+K(dr(r.cb,'b')+' × '+cb)+'. إذن '+K('costB = '+cb)+'.</p>');
+var why=T.mg?(same?(m>0?L('A and B turn the same way, so '+m+' move'+(m==1?'':'s')+' can be done together as '+K(r.ca>=0?'rr':'rrr')+': one move instead of two (green).','A وB يدوران في الاتجاه نفسه، فيمكن تنفيذ '+m+' من الحركات معا بـ '+K(r.ca>=0?'rr':'rrr')+': حركة واحدة بدل اثنتين (باللون الأخضر).'):L('One of the two needs no rotation, so there is nothing to merge: the moves are simply added.','أحدهما لا يحتاج دوران، فلا شيء يُدمج: نجمع الحركات فقط.')):L('A and B turn in opposite directions (one up, one down), so they cannot be merged: we add them.','A وB يدوران في اتجاهين مختلفين (واحد للأعلى وواحد للأسفل)، فلا يمكن دمجهما: نجمعهما.')):L('Merging is switched off, so the moves of A and B are simply added.','الدمج معطّل، فنجمع حركات A وB فقط.');
+var b4='<p>'+why+'</p>'+opChips(q,false)+'<p>'+L('Rotation moves: ','حركات الدوران: ')+K(q.length)+'</p>';
+var b5='<p>'+L('Finally the push itself is one more move.','أخيرا الدفع نفسه حركة إضافية.')+'</p>'+opChips(q,true)+'<p>'+L(q.length+' rotation'+(q.length==1?'':'s')+' + 1 push = ','عدد '+q.length+' دوران + 1 دفع = ')+K(r.c)+'</p><p>'+(r.c==mn?L('This is the lowest cost in the table, so it is the number we choose.','هذه أقل تكلفة في الجدول، فهذا هو الرقم الذي نختاره.'):L('Another row has a lower cost ('+mn+'), so this number is not chosen.','صف آخر تكلفته أقل ('+mn+')، فلا يُختار هذا الرقم.'))+'</p>';
+var A0={hi:v},B0={tg:t};
+return[{h:H[0],b:b0,A:A0,B:{}},{h:H[1],b:b1,A:{hi:v,route:rA},B:{}},{h:H[2],b:b2,A:A0,B:{tg:t,cand:r.sm}},{h:H[3],b:b3,A:A0,B:{tg:t,route:rB}},{h:H[4],b:b4,A:A0,B:B0},{h:H[5],b:b5,A:A0,B:B0}]}
+function mini(arr,o,nm){o=o||{};return '<div class="mn"><div class="mh">'+nm+' <span>'+L('top','القمة')+' ↑</span></div>'+arr.map(function(v,k){var c='mc';if(v==o.hi)c+=' b1';else if(v==o.tg)c+=' b2';else if(o.cand&&o.cand.indexOf(v)>=0)c+=' b3';if(o.route&&k>=o.route[0]&&k<=o.route[1])c+=' rt';return '<div class="'+c+'"><i>'+k+'</i><span>'+v+'</span></div>'}).join('')+'</div>'}
+function renderLab(T,sel){var rk2=T.id+'|'+sel.v;if(rk2!=lastRow){lastRow=rk2;csub=0}
+var key=rk2+'|'+csub+'|'+lang+'|'+T.mg;if(key==labKey)return;labKey=key;
+var d=labData(sel,T)[csub];
+$('labt').textContent=d.h;$('labv').textContent=L('Number ','الرقم ')+sel.v;$('labn').textContent=L('Step ','الخطوة ')+(csub+1)+'/6';
+$('minis').innerHTML=mini(T.A,d.A,'A')+mini(T.B,d.B,'B');
+$('lbb').innerHTML='<div class="fi">'+d.b+'</div>';
+var dh='';for(var q=0;q<6;q++)dh+='<button class="dt'+(q==csub?' on':'')+'" data-q="'+q+'" aria-label="'+(q+1)+'"></button>';$('dots').innerHTML=dh;
+$('lbp').style.opacity=csub==0?.4:1;$('lbx').style.opacity=csub==5?.4:1}
+function mkStage(){var st=$('stg');st.querySelectorAll('.b').forEach(function(x){x.remove()});
+st.style.height=(N*42+28)+'px';bars={};
+vals.forEach(function(v){var d=document.createElement('div');d.className='b';d.textContent=v;d.style.setProperty('--h',Math.round(215-175*rk[v]/Math.max(1,N-1)));st.appendChild(d);bars[v]=d})}
+function show(){var s=S[cur];if(!s)return;
+var T=s.tb,sel=null,hb=s.hb,hw=s.hw;curT=T;
+function row(v){return T.r.filter(function(r){return r.v==v})[0]}
+if(T){sel=(T.free&&insp!=null&&row(insp))||(T.ch!=null?row(T.ch):T.r[0]);var f=(T.free&&hov!=null&&row(hov))||sel;hb=f.v;hw=f.t}
+$('stg').style.setProperty('--td',Math.min(560,delay()*0.7)+'ms');
+vals.forEach(function(v){var d=bars[v],ia=s.a.indexOf(v),col=ia>=0?0:1,idx=ia>=0?ia:s.b.indexOf(v);
+var w=14+32*rk[v]/Math.max(1,N-1);d.style.width=w+'%';d.style.left=(col*51+(49-w)/2+0.5)+'%';d.style.top=(14+idx*42)+'px';
+d.className='b'+(v==hb?' hb':v==hw?' hw':'');d.style.zIndex=(v==hb||v==hw)?10+idx:'';
+if(v==hb)d.setAttribute('data-tag',L('number','الرقم'));else if(v==hw)d.setAttribute('data-tag',L('target','الهدف'));else d.removeAttribute('data-tag')});
+$('pb').textContent=PH()[s.ph];$('op').textContent=s.o||'·';$('op').style.display=s.o?'':'none';$('tt').textContent=s.t;$('ms').textContent=s.m;$('fn').textContent=s.f||'—';$('fw').style.display=s.f?'':'none';
+if(cur!=lastCur){['tt','ms'].forEach(function(id){var e=$(id);e.classList.remove('fi');void e.offsetWidth;e.classList.add('fi')});lastCur=cur}
+var done=0;for(var i=0;i<=cur;i++)if(S[i].o)done++;
+$('cn').textContent=L('Step ','خطوة ')+(cur+1)+'/'+S.length;$('s1').textContent=done;$('sc').value=cur;$('sc').style.setProperty('--p',(cur/Math.max(1,S.length-1)*100)+'%');
+var on=$('tbc').checked;
+$('tbw').classList.toggle('hide',!(T&&on));$('labw').classList.toggle('hide',!(T&&T.md&&on));
+if(T){
+if(tbKey!=T.id){tbKey=T.id;var mn=Math.min.apply(null,T.r.map(function(x){return x.c}));
+var h='<table><thead><tr><th>'+L('Number','الرقم')+'</th><th>'+L('Index in A','موضعه في A')+'</th><th>'+L('Target in B','الهدف في B')+'</th>'+(T.md?'<th>costA</th><th>costB</th><th>'+L('Total','المجموع')+'</th>':'')+'</tr></thead><tbody class="rin">';
+T.r.forEach(function(r,k){h+='<tr data-v="'+r.v+'" style="animation-delay:'+k*40+'ms"><td>'+r.v+'</td><td>'+r.i+'</td><td>'+r.t+'</td>'+(T.md?'<td>'+dr(r.ca,'a')+' '+Math.abs(r.ca)+'</td><td>'+dr(r.cb,'b')+' '+Math.abs(r.cb)+'</td><td>'+r.c+(r.c==mn?' ★':'')+'</td>':'')+'</tr>'});
+$('tb').innerHTML=h+'</tbody></table>'}
+$('tb').querySelectorAll('tbody tr').forEach(function(tr){var v=+tr.getAttribute('data-v');tr.className=(v==sel.v?'sl ':'')+(T.free?'fr':'')});
+$('tbh').textContent=T.free?L('Hover a row to preview it on the stacks. Click to pin it and see how its cost is computed.','مرّر على صف لمعاينته على المكدسين. اضغط لتثبيته ورؤية كيف حُسبت تكلفته.'):L('This step is about the chosen number, so the table is locked.','هذه الخطوة خاصة بالرقم المختار، لذلك الجدول مقفل.');
+if(T.md)renderLab(T,sel)}
+var cs=$('lg').children;for(var j=0;j<cs.length;j++){var ix=+cs[j].getAttribute('data-i');cs[j].className='chip'+(ix==cur?' on':ix<cur?' dn':'')}
+var pb=$('phs').children;for(var p=0;p<pb.length;p++)pb[p].className=(p==s.ph?'on':'')}
+function stop(){if(tm){clearInterval(tm);tm=null}$('pl').textContent='▶'}
+function go(i){insp=null;hov=null;cur=Math.max(0,Math.min(S.length-1,i));show()}
+function parse(){return $('inp').value.split(/[\s,;]+/).filter(Boolean).map(Number)}
+function chips(){$('nums').innerHTML=parse().map(function(v){return '<span>'+(isNaN(v)?'?':v)+'</span>'}).join('')}
+function start(keep){stop();var e=$('er');e.textContent='';var arr=parse();
+if(arr.length<5||arr.length>14||arr.some(function(x){return !Number.isInteger(x)||Math.abs(x)>9999})){e.textContent=L('Enter 5 to 14 whole numbers separated by spaces','أدخل من 5 إلى 14 رقما صحيحا مفصولة بمسافات');return}
+if(new Set(arr).size!=arr.length){e.textContent=L('Numbers must not repeat','الأرقام يجب ألا تتكرر');return}
+ARR=arr;tbKey='';labKey='';lastRow='';lastCur=-1;hov=null;vals=arr.slice();N=arr.length;var so=arr.slice().sort(function(x,y){return x-y});rk={};so.forEach(function(v,i){rk[v]=i});
+S=build(arr,$('mg').checked);
+$('s2').textContent=nops(S);$('s3').textContent=nops(build(arr,false));$('s4').textContent=nops(build(arr,true));
+$('sc').max=S.length-1;
+var h='';S.forEach(function(s,i){if(s.o)h+='<button class="chip" data-i="'+i+'">'+s.o+'</button>'});$('lg').innerHTML=h;
+var pc='';PH().forEach(function(n,i){pc+='<button data-p="'+i+'">'+n+'</button>'});$('phs').innerHTML=pc;
+if(!keep||!bars[arr[0]]||Object.keys(bars).length!=N)mkStage();
+cur=keep?Math.min(keep,S.length-1):0;insp=null;show()}
+function perm(n,f){var p=[];for(var i=1;i<=n;i++)p.push(i);if(f=='r')for(var j=p.length-1;j>0;j--){var k=Math.floor(Math.random()*(j+1)),t=p[j];p[j]=p[k];p[k]=t}if(f=='v')p.reverse();$('inp').value=p.join(' ');chips();start()}
+$('go').onclick=function(){start()};$('mg').onchange=function(){start()};$('tbc').onchange=show;
+$('inp').oninput=chips;$('inp').onkeydown=function(e){if(e.key=='Enter')start()};
+$('n').oninput=function(){$('nv').textContent=this.value};
+$('rnd').onclick=function(){perm(+$('n').value,'r')};$('srt').onclick=function(){perm(+$('n').value,'s')};$('rev').onclick=function(){perm(+$('n').value,'v')};
+$('f').onclick=function(){stop();go(0)};$('l').onclick=function(){stop();go(S.length-1)};
+$('pv').onclick=function(){stop();go(cur-1)};$('nx').onclick=function(){stop();go(cur+1)};
+$('sc').oninput=function(){stop();go(+this.value)};
+$('lg').onclick=function(e){var i=e.target.getAttribute('data-i');if(i!==null){stop();go(+i)}};
+$('phs').onclick=function(e){var p=e.target.getAttribute('data-p');if(p===null)return;stop();for(var i=0;i<S.length;i++)if(S[i].ph==+p){go(i);return}};
+$('tb').onclick=function(e){var tr=e.target.closest('tr[data-v]');if(tr&&curT&&curT.free){var v=+tr.getAttribute('data-v');insp=insp===v?null:v;show()}};
+$('tb').onmouseover=function(e){var tr=e.target.closest('tr[data-v]');if(tr&&curT&&curT.free){var v=+tr.getAttribute('data-v');if(hov!=v){hov=v;show()}}};
+$('tb').onmouseleave=function(){if(hov!=null){hov=null;show()}};
+$('lbp').onclick=function(){if(csub>0){csub--;labKey='';show()}};
+$('lbx').onclick=function(){if(csub<5){csub++;labKey='';show()}};
+$('dots').onclick=function(e){var q=e.target.getAttribute('data-q');if(q!==null){csub=+q;labKey='';show()}};
+$('pl').onclick=function(){if(tm){stop();return}if(cur>=S.length-1)go(0);$('pl').textContent='❚❚';
+tm=setInterval(function(){if(cur<S.length-1)go(cur+1);else stop()},delay())};
+$('sp').oninput=function(){if(tm){stop();$('pl').click()}};
+$('cp').onclick=function(){var t=S.filter(function(s){return s.o}).map(function(s){return s.o}).join('\n'),b=$('cp'),o=b.textContent;
+function ok(){b.textContent=L('Copied','تم النسخ');setTimeout(function(){b.textContent=o},1200)}
+function fb(){var x=document.createElement('textarea');x.value=t;x.style.cssText='position:fixed;opacity:0';document.body.appendChild(x);x.select();try{document.execCommand('copy');ok()}catch(e){}x.remove()}
+try{navigator.clipboard.writeText(t).then(ok,fb)}catch(e){fb()}};
+$('lang').onclick=function(){lang=lang=='ar'?'en':'ar';try{localStorage.setItem('tk_l',lang)}catch(e){}ui();var c=cur;start(c)};
+$('th').onclick=function(){var r=document.documentElement,dk=r.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');var nt=dk=='dark'?'light':'dark';r.setAttribute('data-theme',nt);try{localStorage.setItem('tk_t',nt)}catch(e){}};
+document.onkeydown=function(e){if(e.target.tagName=='INPUT'||e.ctrlKey||e.metaKey||e.altKey)return;if(e.key=='ArrowRight'){e.preventDefault();stop();go(cur+1)}else if(e.key=='ArrowLeft'){e.preventDefault();stop();go(cur-1)}};
+ui();chips();start();
+</script>
+</body>
+</html>
